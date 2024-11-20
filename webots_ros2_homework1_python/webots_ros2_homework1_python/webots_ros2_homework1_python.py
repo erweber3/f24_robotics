@@ -103,7 +103,7 @@ class RandomWalk(Node):
             self.get_logger().info('Turning')
             self.turtlebot_moving = True
         else:
-            self.cmd.linear.x = LINEAR_VELOCITY
+            self.cmd.linear.x = LINEAR_VEL
             self.cmd.linear.z = 0.0
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
