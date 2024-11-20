@@ -52,15 +52,11 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-        self.spin_cycle_interval = 18.0  # Spin every 18 seconds
+        self.spin_cycle_interval = 18.0  # Spin every 20 seconds
         self.spin_duration = 5.0        # Spin for 5 seconds
         self.spin_cycle_timer = self.create_timer(self.spin_cycle_interval, self.spin_cycle_callback)
-        self.is_spinning = True  # Start in the spinning state
-        self.spin_start_time = self.get_clock().now()
-        self.get_logger().info('Starting initial spin cycle')
-        self.cmd.angular.z = 1.2  # Angular velocity for spinning
-        self.cmd.linear.x = 0.0
-        self.publisher_.publish(self.cmd)
+        self.is_spinning = False
+        self.spin_start_time = None
 
     def spin_cycle_callback(self):
         """Initiates the spin cycle."""
