@@ -12,7 +12,7 @@ from apriltag_msgs.msg import AprilTagDetectionArray
 import math
 import random
 
-LINEAR_VEL = 0.22
+LINEAR_VEL = 0.16
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 1.2
@@ -53,6 +53,27 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
+        self.spin_cycle_timer = self.create_timer(10.0, self.spin_cycle_callback)
+        self.is_spinning = False
+        self.spin_duration = 5.0  # Adjust based on angular velocity and TurtleBot specs
+        self.spin_start_time = None
+
+    def spin_cycle_callback(self):
+        if not self.is_spinning:
+            self.get_logger().info('Starting spin cycle')
+            self.is_spinning = True
+            self.spin_start_time = self.get_clock().now()
+            self.cmd.angular.z = 2.0  # Angular velocity for spinning (adjust as needed)
+            self.cmd.linear.x = 0.0  # Ensure no forward/backward movement
+            self.publisher_.publish(self.cmd)
+    else:
+        elapsed_time = (self.get_clock().now() - self.spin_start_time).nanoseconds * 1e-9
+        if elapsed_time >= self.spin_duration:
+            self.get_logger().info('Spin cycle complete')
+            self.is_spinning = False
+            self.cmd.angular.z = 1.25
+            self.publisher_.publish(self.cmd)
+
 
     def listener_callback1(self, msg1):
         #self.get_logger().info('scan: "%s"' % msg1.ranges)
@@ -85,8 +106,14 @@ class RandomWalk(Node):
     def apriltag_callback(self, msg):
         if msg.detections:
             self.get_logger().info('AprilTag detected: "%s"' % msg.detections)
+
+    def spin_cycle_callback(self,msg3):
+
         
     def timer_callback(self):
+        if self.is_spinning:
+            return
+
         if (len(self.scan_cleaned)==0):
     	    self.turtlebot_moving = False
     	    return
@@ -98,25 +125,23 @@ class RandomWalk(Node):
         if front_lidar_min < SAFE_STOP_DISTANCE:
             if self.turtlebot_moving == True:
                 self.cmd.linear.x = 0.0 
-                self.cmd.angular.z = 0.0 
+                self.cmd.angular.z = 0.2 
                 self.publisher_.publish(self.cmd)
                 self.turtlebot_moving = False
                 self.get_logger().info('Stopping')
                 return
         elif front_lidar_min < LIDAR_AVOID_DISTANCE:
-            self.cmd.linear.x = 0.07 
-            if (right_lidar_min > left_lidar_min):
-                self.cmd.angular.z = -0.3
-            else:
-                self.cmd.angular.z = 0.3
+            self.cmd.linear.x = 0.1
+            self.cmd.angular.z = 0.3
             self.publisher_.publish(self.cmd)
             self.get_logger().info('Turning')
             self.turtlebot_moving = True
         else:
             self.cmd.linear.x = LINEAR_VEL
-            self.cmd.linear.z = 0.1
+            self.cmd.anular.z = -0.2
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
+            self.get_logger().info('Turning back into wall')
             
 
         self.get_logger().info('Distance of the obstacle : %f' % front_lidar_min)
