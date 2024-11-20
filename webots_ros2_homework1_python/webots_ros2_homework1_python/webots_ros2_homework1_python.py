@@ -15,7 +15,7 @@ import math
 LINEAR_VEL = 0.18
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
-LIDAR_AVOID_DISTANCE = 1.2
+LIDAR_AVOID_DISTANCE = 1.1
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 RIGHT_SIDE_INDEX = 90
 RIGHT_FRONT_INDEX = 45
@@ -52,8 +52,8 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-        self.spin_cycle_interval = 18.0  # Spin every 20 seconds
-        self.spin_duration = 5.0        # Spin for 5 seconds
+        self.spin_cycle_interval = 24.0  # Spin every 20 seconds
+        self.spin_duration = 9.0        # Spin for 5 seconds
         self.spin_cycle_timer = self.create_timer(self.spin_cycle_interval, self.spin_cycle_callback)
         self.is_spinning = False
         self.spin_start_time = None
@@ -64,7 +64,7 @@ class RandomWalk(Node):
             self.get_logger().info('Starting spin cycle')
             self.is_spinning = True
             self.spin_start_time = self.get_clock().now()
-            self.cmd.angular.z = 1.2  # Angular velocity for spinning
+            self.cmd.angular.z = 0.69  # Angular velocity for spinning
             self.cmd.linear.x = 0.0   # Ensure no forward/backward movement
             self.publisher_.publish(self.cmd)
 
