@@ -9,19 +9,17 @@ from nav_msgs.msg import Odometry
 # import Quality of Service library, to set the correct profile and reliability in order to read sensor data.
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
-
-
+import random
 
 LINEAR_VEL = 0.22
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 0.7
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
-
-RIGHT_SIDE_INDEX = 270
-RIGHT_FRONT_INDEX = 210
-LEFT_FRONT_INDEX=150
-LEFT_SIDE_INDEX=90
+RIGHT_SIDE_INDEX = 90
+RIGHT_FRONT_INDEX = 45 ############################### CHANGE HERE
+LEFT_FRONT_INDEX = 315
+LEFT_SIDE_INDEX = 270
 
 class RandomWalk(Node):
 
@@ -49,6 +47,7 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
+
     def listener_callback1(self, msg1):
         #self.get_logger().info('scan: "%s"' % msg1.ranges)
         scan = msg1.ranges
@@ -59,6 +58,8 @@ class RandomWalk(Node):
         for reading in scan:
             if reading == float('Inf'):
                 self.scan_cleaned.append(3.5)
+            elif reading == 0.0:
+                self.scan_cleaned.append(10) ############################### CHANGE HERE
             elif math.isnan(reading):
                 self.scan_cleaned.append(0.0)
             else:
@@ -71,36 +72,15 @@ class RandomWalk(Node):
         orientation = msg2.pose.pose.orientation
         (posx, posy, posz) = (position.x, position.y, position.z)
         (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
-        self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz));
-        # similarly for twist message if you need
+        # self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz));
         self.pose_saved=position
-        
-        #Example of how to identify a stall..need better tuned position deltas; wheels spin and example fast
-        #diffX = math.fabs(self.pose_saved.x- position.x)
-        #diffY = math.fabs(self.pose_saved.y - position.y)
-        #if (diffX < 0.0001 and diffY < 0.0001):
-           #self.stall = True
-        #else:
-           #self.stall = False
-           
         return None
         
     def timer_callback(self):
-        if (len(self.scan_cleaned)==0):
-    	    self.turtlebot_moving = False
-    	    return
-    	    
-        #left_lidar_samples = self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX]
-        #right_lidar_samples = self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX]
-        #front_lidar_samples = self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX]
         
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
-        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
-
-        #self.get_logger().info('left scan slice: "%s"'%  min(left_lidar_samples))
-        #self.get_logger().info('front scan slice: "%s"'%  min(front_lidar_samples))
-        #self.get_logger().info('right scan slice: "%s"'%  min(right_lidar_samples))
+        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:359] + self.scan_cleaned[0:RIGHT_FRONT_INDEX]) ######CHANGE HERE
 
         if front_lidar_min < SAFE_STOP_DISTANCE:
             if self.turtlebot_moving == True:
@@ -111,14 +91,14 @@ class RandomWalk(Node):
                 self.get_logger().info('Stopping')
                 return
         elif front_lidar_min < LIDAR_AVOID_DISTANCE:
-                self.cmd.linear.x = 0.07 
-                if (right_lidar_min > left_lidar_min):
-                   self.cmd.angular.z = -0.3
-                else:
-                   self.cmd.angular.z = 0.3
-                self.publisher_.publish(self.cmd)
-                self.get_logger().info('Turning')
-                self.turtlebot_moving = True
+            self.cmd.linear.x = 0.07 
+            if (right_lidar_min > left_lidar_min):
+                self.cmd.angular.z = -0.3
+            else:
+                self.cmd.angular.z = 0.3
+            self.publisher_.publish(self.cmd)
+            self.get_logger().info('Turning')
+            self.turtlebot_moving = True
         else:
             self.cmd.linear.x = 0.3
             self.cmd.linear.z = 0.0
