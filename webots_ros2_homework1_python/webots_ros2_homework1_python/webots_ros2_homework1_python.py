@@ -77,13 +77,17 @@ class RandomWalk(Node):
         return None
         
     def timer_callback(self):
-        if (len(self.scan_cleaned)==0):
-    	    self.turtlebot_moving = False
-    	    return
-        
+        if len(self.scan_cleaned) == 0:
+        self.scan_cleaned = [3.5] * 360  # Initialize with safe distances
+        self.turtlebot_moving = False
+        return
+
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
-        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:359] + self.scan_cleaned[0:RIGHT_FRONT_INDEX]) ######CHANGE HERE
+        front_lidar_min = min(
+            self.scan_cleaned[LEFT_FRONT_INDEX:min(len(self.scan_cleaned), 360)] +
+            self.scan_cleaned[0:RIGHT_FRONT_INDEX]
+        ) ######CHANGE HERE
 
         if front_lidar_min < SAFE_STOP_DISTANCE:
             if self.turtlebot_moving == True:
@@ -116,6 +120,7 @@ class RandomWalk(Node):
            self.get_logger().info('Stall reported')
         
         # Display the message on the console
+        self.publisher_.publish(self.cmd)
         self.get_logger().info('Publishing: "%s"' % self.cmd)
  
 
