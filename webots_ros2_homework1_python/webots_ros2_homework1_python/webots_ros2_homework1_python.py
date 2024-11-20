@@ -53,7 +53,7 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-        self.spin_cycle_timer = self.create_timer(10.0, self.spin_cycle_callback)
+        self.spin_cycle_timer = self.create_timer(20.0, self.spin_cycle_callback)
         self.is_spinning = False
         self.spin_duration = 5.0  # Adjust based on angular velocity and TurtleBot specs
         self.spin_start_time = None
