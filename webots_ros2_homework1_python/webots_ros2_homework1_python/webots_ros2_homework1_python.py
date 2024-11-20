@@ -77,7 +77,9 @@ class RandomWalk(Node):
         return None
         
     def timer_callback(self):
-        
+        if (len(self.scan_cleaned)==0):
+    	    self.turtlebot_moving = False
+    	    return
         
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
