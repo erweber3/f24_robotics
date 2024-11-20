@@ -15,7 +15,7 @@ import random
 LINEAR_VEL = 0.22
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
-LIDAR_AVOID_DISTANCE = 0.7
+LIDAR_AVOID_DISTANCE = 1.2
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 RIGHT_SIDE_INDEX = 90
 RIGHT_FRONT_INDEX = 45 ############################### CHANGE HERE
@@ -114,7 +114,7 @@ class RandomWalk(Node):
             self.turtlebot_moving = True
         else:
             self.cmd.linear.x = LINEAR_VEL
-            self.cmd.linear.z = 0.0
+            self.cmd.linear.z = 0.1
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
             
