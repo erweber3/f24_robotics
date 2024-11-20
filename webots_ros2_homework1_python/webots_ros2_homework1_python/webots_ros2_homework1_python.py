@@ -15,7 +15,6 @@ LINEAR_VEL = 0.22
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 0.7
-LIDAR_TURN_DISTANCE = 1.0
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 RIGHT_SIDE_INDEX = 90
 RIGHT_FRONT_INDEX = 45 ############################### CHANGE HERE
@@ -79,6 +78,7 @@ class RandomWalk(Node):
         
     def timer_callback(self):
         
+        
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
         front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:359] + self.scan_cleaned[0:RIGHT_FRONT_INDEX]) ######CHANGE HERE
@@ -93,19 +93,16 @@ class RandomWalk(Node):
                 return
         elif front_lidar_min < LIDAR_AVOID_DISTANCE:
             self.cmd.linear.x = 0.07 
-            self.cmd.angular.z = 0.3
+            if (right_lidar_min > left_lidar_min):
+                self.cmd.angular.z = -0.3
+            else:
+                self.cmd.angular.z = 0.3
             self.publisher_.publish(self.cmd)
             self.get_logger().info('Turning')
             self.turtlebot_moving = True
-        elif front_lidar_min < LIDAR_TURN_DISTANCE:
-            self.cmd.linear.x = 0.15
-            self.cmd.angular.z = 0.15
-            self.publisher_.publish(self.cmd)
-            self.get_logger().info('Turning_Moderate')
-            self.turtlebot_moving = True
         else:
-            self.cmd.linear.x = 0.22
-            self.cmd.linear.z = -0.2
+            self.cmd.linear.x = 0.3
+            self.cmd.linear.z = 0.0
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
             
